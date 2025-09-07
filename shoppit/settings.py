@@ -62,6 +62,7 @@ MIDDLEWARE = [
 
 # settings/development.py
 CORS_ALLOWED_ORIGINS = [
+    "https://jyoriya-store-ljs6.onrender.com",
     "http://localhost:5173",  # React development server
     "http://localhost:5174",  # React development server
     "http://localhost:5175",  # React development server
