@@ -49,10 +49,10 @@ INSTALLED_APPS = [
 ]
 
 MIDDLEWARE = [
+     'corsheaders.middleware.CorsMiddleware',
     'django.middleware.security.SecurityMiddleware',
     "whitenoise.middleware.WhiteNoiseMiddleware",
     'django.contrib.sessions.middleware.SessionMiddleware',
-     'corsheaders.middleware.CorsMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
@@ -62,7 +62,7 @@ MIDDLEWARE = [
 
 # settings/development.py
 CORS_ALLOWED_ORIGINS = [
-    "https://jyoriya-store-ljs6.onrender.com",
+    "https://jyoriyastore.vercel.app",
     "http://localhost:5173",  # React development server
     "http://localhost:5174",  # React development server
     "http://localhost:5175",  # React development server
