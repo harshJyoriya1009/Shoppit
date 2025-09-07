@@ -30,7 +30,7 @@ SECRET_KEY = 'django-insecure--=r5fv#!x6-$7w9+^xfz$ff2xiht5j$%=gy51@t8g(+oca0)m1
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ["jyoriya-store-ljs6.onrender.com", "localhost" , "127.0.0.1"]
 
 
 # Application definition
