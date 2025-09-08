@@ -3,6 +3,7 @@ from . import views
 
 
 urlpatterns = [
+    
     path("products/", views.products, name = "products"),
     path("product_detail/<slug:slug>", views.product_detail, name="product_detail" ),
     path("add_item/", views.add_item , name="add_item"),
@@ -14,7 +15,8 @@ urlpatterns = [
     path("get_username/", views.get_username, name="get_username"),
     path("user_info/", views.user_info, name="user_info"),
     path("initiate_payment/", views.initiate_payment, name="initiate_payment"),
-    path("payment_callback/", views.payment_callback, name="payment_callback")
+    path("payment_callback/", views.payment_callback, name="payment_callback"),
+    path("register_user/", views.register_user, name="register_user"),
 
 ]
 

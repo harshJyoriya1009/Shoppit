@@ -9,6 +9,10 @@ from decimal import Decimal
 import uuid
 import requests
 from django.conf import settings
+from django.contrib.auth.models import User
+from django.contrib.auth.hashers import make_password
+from django.contrib.auth import get_user_model
+from rest_framework_simplejwt.tokens import RefreshToken 
 
 BASE_URL = settings.REACT_BASE_URL
 # Create your views here.
@@ -27,23 +31,48 @@ def product_detail(request,slug):
     return Response(serializer.data) 
 
 @api_view(["POST"])
+# def add_item(request):
+#     try:
+#         cart_code = request.data.get("cart_code")
+#         product_id = request.data.get("product_id")
+
+#         cart, created = Cart.objects.get_or_create(cart_code=cart_code)
+#         product = Product.objects.get(id=product_id)
+
+#         cartitem,created = CartItem.objects.get_or_create(cart=cart,product=product)
+#         cartitem.quantity=1
+#         cartitem.save()
+
+#         serializer = CartItemSerializer(cartitem)
+#         return Response({"data":serializer.data, "message":"Cartitem created successfully"}, status=201)
+
+#     except Exception as e:
+#         return Response({"error":str(e)}, status=400)
+
 def add_item(request):
     try:
-        cart_code = request.data.get("cart_code")
         product_id = request.data.get("product_id")
+        user = request.user if request.user.is_authenticated else None
 
-        cart, created = Cart.objects.get_or_create(cart_code=cart_code)
+        # If user is logged in, get or create cart for them
+        if user:
+            cart, created = Cart.objects.get_or_create(user=user, paid=False)
+        else:
+            cart_code = request.data.get("cart_code")
+            cart, created = Cart.objects.get_or_create(cart_code=cart_code, paid=False)
+
         product = Product.objects.get(id=product_id)
 
-        cartitem,created = CartItem.objects.get_or_create(cart=cart,product=product)
-        cartitem.quantity=1
+        cartitem, created = CartItem.objects.get_or_create(cart=cart, product=product)
+        cartitem.quantity = 1
         cartitem.save()
 
         serializer = CartItemSerializer(cartitem)
-        return Response({"data":serializer.data, "message":"Cartitem created successfully"}, status=201)
+        return Response({"data": serializer.data, "message": "Cartitem created successfully"}, status=201)
 
     except Exception as e:
-        return Response({"error":str(e)}, status=400)
+        return Response({"error": str(e)}, status=400)
+
     
 
 @api_view(["GET"])
@@ -60,9 +89,19 @@ def product_in_cart(request):
 
 
 @api_view(["GET"])
+# def get_cart_stat(request):
+#     cart_code = request.query_params.get("cart_code")
+#     cart = Cart.objects.get(cart_code=cart_code, paid=False)
+#     serializer = SimpleCartSerializer(cart)
+#     return Response(serializer.data)
+
 def get_cart_stat(request):
-    cart_code = request.query_params.get("cart_code")
-    cart = Cart.objects.get(cart_code=cart_code, paid=False)
+    user = request.user if request.user.is_authenticated else None
+    if user:
+        cart, created = Cart.objects.get_or_create(user=user, paid=False)
+    else:
+        cart_code = request.query_params.get("cart_code")
+        cart, created = Cart.objects.get_or_create(cart_code=cart_code, paid=False)
     serializer = SimpleCartSerializer(cart)
     return Response(serializer.data)
 
@@ -294,3 +333,117 @@ def payment_callback(request):
     return Response({'message': 'Payment was not successful'}, status=400)
 
 
+User = get_user_model()  # <-- now it points to core.CustomUser
+
+# @api_view(["POST"])
+# def register_user(request):
+#     try:
+#         username = request.data.get("username")
+#         email = request.data.get("email")
+#         password = request.data.get("password")
+#         address = request.data.get("address")
+#         city = request.data.get("city")
+#         state = request.data.get("state")
+
+#         if not username or not password:
+#             return Response({"error": "Username and password required"}, status=status.HTTP_400_BAD_REQUEST)
+
+#         if User.objects.filter(username=username).exists():
+#             return Response({"error": "Username already exists"}, status=status.HTTP_400_BAD_REQUEST)
+
+#         # ✅ create user with your CustomUser model
+#         user = User.objects.create_user(
+#             username=username,
+#             email=email,
+#             password=password,
+#             address=address,
+#             city=city,
+#             state=state
+#         )
+
+#          cart = Cart.objects.create(
+#             cart_code=str(uuid.uuid4()),
+#             user=user,
+#             paid=False
+#         )
+
+#         # ✅ generate JWT tokens
+#         refresh = RefreshToken.for_user(user)
+
+#         return Response(
+#             {
+#                 "message": "Account created successfully!",
+#                 "user": UserSerializer(user).data,
+#                 "cart_code": cart.cart_code,
+#                 "refresh": str(refresh),
+#                 "access": str(refresh.access_token),
+#             },
+#             status=status.HTTP_201_CREATED,
+#         )
+
+#     except Exception as e:
+#         return Response({"error": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+
+@api_view(["POST"])
+def register_user(request):
+    try:
+        username = request.data.get("username")
+        email = request.data.get("email")
+        password = request.data.get("password")
+        address = request.data.get("address")
+        city = request.data.get("city")
+        state = request.data.get("state")
+
+        if not username or not password:
+            return Response(
+                {"error": "Username and password required"},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+
+        if User.objects.filter(username=username).exists():
+            return Response(
+                {"error": "Username already exists"},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+
+        # Create the user
+        user = User.objects.create_user(
+            username=username,
+            email=email,
+            password=password,
+            address=address,
+            city=city,
+            state=state
+        )
+
+        # Create a new cart for this user
+        cart = Cart.objects.create(
+            cart_code=str(uuid.uuid4()),
+            user=user,
+            paid=False
+        )
+
+        # Generate JWT tokens
+        refresh = RefreshToken.for_user(user)
+
+        return Response(
+            {
+                "message": "Account created successfully!",
+                "user": {
+                    "id": user.id,
+                    "username": user.username,
+                    "email": user.email,
+                    "address": user.address,
+                    "city": user.city,
+                    "state": user.state,
+                },
+                "cart_code": cart.cart_code,
+                "refresh": str(refresh),
+                "access": str(refresh.access_token),
+            },
+            status=status.HTTP_201_CREATED
+        )
+
+    except Exception as e:
+        return Response({"error": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)

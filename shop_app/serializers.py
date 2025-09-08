@@ -100,6 +100,13 @@ class UserSerializer(serializers.ModelSerializer):
         model = User
         fields = ['id','username','first_name','last_name','email','city','state','address','phone', 'items']
 
+    def create(self, validated_data):
+        password = validated_data.pop("password")
+        user = User(**validated_data)
+        user.set_password(password)
+        user.save()
+        return user
+
     
     def get_items(self, user):
         # cartitems = CartItem.objects.filter(cart_user = user, cart_paid = True)[:10]
