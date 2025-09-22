@@ -31,24 +31,6 @@ def product_detail(request,slug):
     return Response(serializer.data) 
 
 @api_view(["POST"])
-# def add_item(request):
-#     try:
-#         cart_code = request.data.get("cart_code")
-#         product_id = request.data.get("product_id")
-
-#         cart, created = Cart.objects.get_or_create(cart_code=cart_code)
-#         product = Product.objects.get(id=product_id)
-
-#         cartitem,created = CartItem.objects.get_or_create(cart=cart,product=product)
-#         cartitem.quantity=1
-#         cartitem.save()
-
-#         serializer = CartItemSerializer(cartitem)
-#         return Response({"data":serializer.data, "message":"Cartitem created successfully"}, status=201)
-
-#     except Exception as e:
-#         return Response({"error":str(e)}, status=400)
-
 def add_item(request):
     try:
         product_id = request.data.get("product_id")
@@ -89,12 +71,6 @@ def product_in_cart(request):
 
 
 @api_view(["GET"])
-# def get_cart_stat(request):
-#     cart_code = request.query_params.get("cart_code")
-#     cart = Cart.objects.get(cart_code=cart_code, paid=False)
-#     serializer = SimpleCartSerializer(cart)
-#     return Response(serializer.data)
-
 def get_cart_stat(request):
     user = request.user if request.user.is_authenticated else None
     if user:
@@ -129,13 +105,6 @@ def update_quantity(request):
     except Exception as e:
         return Response({"error": str(e)}, status=400)
     
-
-# @api_view(["POST"])
-# def delete_cartitem(request):
-#     cartitem_id = request.data.get("item_id")
-#     cartitem = CartItem.objects.get(id=cartitem_id)
-#     cartitem.delete()
-#     return Response({"message": "Item deleted successfully"},status=status.HTTP_204_NO_CONTENT)
 
 @api_view(["POST"])
 def delete_cartitem(request):
@@ -227,48 +196,6 @@ def initiate_payment(request):
             return Response({"error": str(e)} , status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 
-# @api_view(["POST"])
-# def payment_callback(request):
-#     status = request.GET.get('status')
-#     tx_ref = request.GET.get('tx_ref')
-#     transaction_id = request.GET.get("transaction_id")
-
-#     user = request.user
-
-#     if status == 'successful':
-#         headers ={
-#             "Authorization": f"Bearer {settings.FLUTTERWAVE_SECRET_KEY}"
-#         }
-
-#         response = requests.get(f"https://api.flutterwave.com/v3/transaction/{transaction_id}/verify", headers=headers)
-#         response_data = response.json()
-
-#         if response_data['status'] == 'success':
-#             transaction = Transaction.objects.get(ref = tx_ref)
-
-#             if(response_data['data']['status'] == 'successful'
-#                     and float(response_data['data']['amount']) == float(transaction.amount)
-#                     and response_data['data']['currency'] == transaction.currency):
-                
-#                 transaction.status == 'completed'
-#                 transaction.save()
-
-#                 cart = transaction.cart
-#                 cart.paid = True
-#                 cart.user = user
-#                 cart.save()
-
-#                 return Response({'message': 'Payment Successful', 'submessage': 'you have successfully made your payment'})
-            
-#             else:
-#                 return Response({'message': 'Payment verification failed', 'submessage': 'your payment verification failed'})
-            
-#         else:
-#             return Response({'message': 'failed to verify transaction through flutterwave', 'submessage': 'we could not take your transaction'})
-        
-#     else:
-#         return Response({'message': 'Payment was not successfull'}, status=400)
-
 
 @api_view(["POST"])
 def payment_callback(request):
@@ -334,55 +261,6 @@ def payment_callback(request):
 
 
 User = get_user_model()  # <-- now it points to core.CustomUser
-
-# @api_view(["POST"])
-# def register_user(request):
-#     try:
-#         username = request.data.get("username")
-#         email = request.data.get("email")
-#         password = request.data.get("password")
-#         address = request.data.get("address")
-#         city = request.data.get("city")
-#         state = request.data.get("state")
-
-#         if not username or not password:
-#             return Response({"error": "Username and password required"}, status=status.HTTP_400_BAD_REQUEST)
-
-#         if User.objects.filter(username=username).exists():
-#             return Response({"error": "Username already exists"}, status=status.HTTP_400_BAD_REQUEST)
-
-#         # ✅ create user with your CustomUser model
-#         user = User.objects.create_user(
-#             username=username,
-#             email=email,
-#             password=password,
-#             address=address,
-#             city=city,
-#             state=state
-#         )
-
-#          cart = Cart.objects.create(
-#             cart_code=str(uuid.uuid4()),
-#             user=user,
-#             paid=False
-#         )
-
-#         # ✅ generate JWT tokens
-#         refresh = RefreshToken.for_user(user)
-
-#         return Response(
-#             {
-#                 "message": "Account created successfully!",
-#                 "user": UserSerializer(user).data,
-#                 "cart_code": cart.cart_code,
-#                 "refresh": str(refresh),
-#                 "access": str(refresh.access_token),
-#             },
-#             status=status.HTTP_201_CREATED,
-#         )
-
-#     except Exception as e:
-#         return Response({"error": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 
 @api_view(["POST"])
